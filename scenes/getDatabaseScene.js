@@ -17,7 +17,11 @@ class GetDatabaseScene {
     async enter(ctx) {
         // Get list of databases
         const databasesList = await ctx.session.googleSheets.readData(process.env.DATABASES_TABLE_ID);
-        if(!databasesList) return ctx.reply("Ви ще не створювали бази даних.")
+        if(!databasesList) {
+            await ctx.reply("Ви ще не створювали бази даних.");
+
+            return await ctx.scene.leave();
+        }
 
         // Configure inline keyboard array with this list
         const inlineKeyboardArray = []
