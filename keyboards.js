@@ -10,7 +10,12 @@ const databaseFunctionsKeyboard = Keyboard.make([
     ["Повернутись на початок"]
 ]).reply();
 
+const endChatSessionKeyboard = Keyboard.make([
+    ["Завершити сесію"]
+]).reply();
+
 module.exports = {
     startKeyboard,
-    databaseFunctionsKeyboard
+    databaseFunctionsKeyboard,
+    endChatSessionKeyboard
 }
