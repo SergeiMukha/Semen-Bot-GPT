@@ -3,30 +3,41 @@ require("dotenv").config();
 const { Scenes: { BaseScene } } = require("telegraf");
 const { startKeyboard } = require("../keyboards");
 
-const AddDatabaseScene = new BaseScene("addDatabase");
+class AddDatabaseScene {
+    constructor() {
+        const scene = new BaseScene("addDatabase");
 
-AddDatabaseScene.enter(ctx => ctx.reply("Введіть назву для бази даних:"));
+        scene.enter(ctx => ctx.reply("Введіть назву для бази даних:", { reply_markup: { remove_keyboard: true } }));
+        
+        scene.on("text", this.createDatabase);
 
-AddDatabaseScene.on("text", async ctx => {
-    const name = ctx.message.text;
+        scene.on("message", (ctx) => ctx.reply("Це не те, що мені треба"));
 
-    // Create new database and add new database to databases table
-    try {
-        const spreadsheetId = await ctx.session.googleSheets.createDatabase(name);
-        await ctx.session.googleSheets.writeData(process.env.DATABASES_TABLE_ID, [[name, spreadsheetId]]);
+        return scene;
+    }
 
-        const columnsNames = ["Ім'я", "Адреса", "Номер телефону", "Що продає", "Що купує"];
-        await ctx.session.googleSheets.writeData(spreadsheetId, [columnsNames]);
-        await ctx.session.googleSheets.deleteFirstSheet(spreadsheetId);
-    } catch (err) {
-        ctx.reply("Помилка. Детальну інформацію щодо помилки ви можете побачити в логах бота.")
+    async createDatabase(ctx) {
+        const name = ctx.message.text;
 
-        console.log(err);
-    };
-
-    ctx.scene.leave();
-
-    return ctx.reply("Готово!", startKeyboard);
-});
+        try {
+            // Create database and add it to databases list
+            const spreadsheetId = await ctx.session.googleSheets.createDatabase(name);
+            await ctx.session.googleSheets.writeData(process.env.DATABASES_TABLE_ID, [[name, spreadsheetId]]);
+            
+            // Add columns names and delete first unnecessary sheet
+            const columnsNames = ["Ім'я", "Адреса", "Номер телефону", "Що продає", "Що купує", "Коментар"];
+            await ctx.session.googleSheets.writeData(spreadsheetId, [columnsNames]);
+            await ctx.session.googleSheets.deleteFirstSheet(spreadsheetId);
+        } catch (err) {
+            ctx.reply("Помилка. Детальну інформацію щодо помилки ви можете побачити в логах бота.")
+    
+            console.log(err);
+        };
+    
+        ctx.scene.leave();
+    
+        return ctx.reply("База даних створена.", startKeyboard);
+    }
+}
 
 module.exports = AddDatabaseScene;

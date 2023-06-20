@@ -61,7 +61,7 @@ class EditDatabaseScene {
             }
 
             // Define button and push it to the array
-            const button = Markup.button.callback(row, i);
+            const button = Markup.button.callback(row, i+1);
             inlineKeyboardArray.push([button]);
         }
 
