@@ -13,7 +13,7 @@ class EditEntryScene {
 
         // Define actions buttons
         scene.action("resumeEntryEdit", ctx => ctx.scene.enter("getEntryRow"));
-        scene.action("getBackToRow", ctx => ctx.scene.enter("editDatabase"));
+        scene.action("getBackToRow", ctx => { ctx.scene.enter("editDatabase"); deleteRecentKeyboard(ctx); });
         scene.action("getBackStart", ctx => {
             // Delete scene data and leave it
             delete ctx.session.editSceneData;

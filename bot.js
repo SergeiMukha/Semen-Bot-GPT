@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const { Telegraf, Scenes, session } = require('telegraf');
 
+const ReadDatabaseScene = require("./scenes/readDatabaseScene");
 const GetDatabaseScene = require("./scenes/getDatabaseScene");
 const AddDatabaseEntryScene = require("./scenes/addDatabaseEntryScene");
 const AddDatabaseScene = require("./scenes/addDatabaseScene");
@@ -11,7 +12,6 @@ const EditEntryScene = require("./scenes/editEntryScene");
 const MakeChatGPTRequestScene = require("./scenes/makeChatGPTRequestScene");
 
 const startHandler = require("./handlers/startHandler");
-const readDatabaseHandler = require("./handlers/readDatabaseHandler");
 const deleteDatabaseHandler = require("./handlers/deleteDatabaseHandler");
 
 const makeChatGPTRequest = require("./chatGPT/makeChatGPTRequest");
@@ -21,6 +21,7 @@ const validateUsage = require("./utils/validateUsage");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const stage = new Scenes.Stage([
+    new ReadDatabaseScene(),
     new GetDatabaseScene(),
     new EditDatabaseScene(),
     new AddDatabaseEntryScene(),
@@ -54,7 +55,7 @@ bot.hears("Створити базу даних", (ctx) => { ctx.scene.enter("ad
 // Get database
 bot.hears("Вибрати базу даних", (ctx) => ctx.scene.enter("getDatabase"));
 
-bot.hears("Переглянути базу даних", readDatabaseHandler);
+bot.hears("Переглянути базу даних", (ctx) => ctx.scene.enter("readDatabase"));
 
 bot.hears("Редагувати базу даних", (ctx) => ctx.scene.enter("editDatabase"));
 
