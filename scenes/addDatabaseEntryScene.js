@@ -1,4 +1,5 @@
 const { Scenes: { WizardScene } } = require("telegraf");
+const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 class AddDatabaseEntryScene {
     constructor() {
@@ -11,7 +12,7 @@ class AddDatabaseEntryScene {
             this.getBuyProduct,
             this.getComment
         );
-        addDatabaseEntryScene.enter(ctx => ctx.reply("Введіть ім'я:"))
+        addDatabaseEntryScene.enter(ctx => { deleteRecentKeyboard(ctx); ctx.reply("Введіть ім'я:") })
 
         return addDatabaseEntryScene;
     }
@@ -73,7 +74,7 @@ class AddDatabaseEntryScene {
 
         ctx.wizard.state.data.push(comment);
 
-        await ctx.session.googleSheets.writeData(ctx.session.currentDatabaseId, [ctx.wizard.state.data]);
+        await ctx.session.googleSheetsService.writeData(ctx.session.currentDatabaseId, [ctx.wizard.state.data]);
 
         await ctx.reply("Готово!");
 

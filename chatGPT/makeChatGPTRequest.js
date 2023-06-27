@@ -21,7 +21,7 @@ async function makeChatGPTRequest(ctx) {
         }
 
         if(err.response.status == 400) {
-            ctx.reply("Завелика кількість токенів(даних) у вхідному чи вихідному повідомленні, змініть запит, або зменшіть обсяг даних.")
+            ctx.reply("Занадто велика база даних для обробки даних.")
             return;
         } else if(err.response.status == 429) {
             ctx.reply("Забагато запитів в певний проміжок часу.")

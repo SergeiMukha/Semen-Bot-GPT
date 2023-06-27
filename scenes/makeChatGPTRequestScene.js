@@ -3,16 +3,24 @@ const { Keyboard } = require("telegram-keyboard");
 
 const makeChatGPTRequest = require("../chatGPT/makeChatGPTRequest");
 const { databaseFunctionsKeyboard, endChatSessionKeyboard } = require("../keyboards");
+const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 class MakeChatGPTRequestScene {
     constructor() {
         const scene = new BaseScene("makeChatGPTRequest");
 
         // Enter handler
-        scene.enter(ctx => ctx.reply("Введіть запит:", endChatSessionKeyboard));
+        scene.enter(ctx => { deleteRecentKeyboard(ctx); ctx.reply("Введіть запит:", endChatSessionKeyboard); });
 
         // End Chat GPT session button handler
-        scene.hears("Завершити сесію", ctx => { ctx.scene.leave(); ctx.session.messages = []; ctx.reply("Що ви хочете зробити з цією базою даних?", databaseFunctionsKeyboard) })
+        scene.hears("Завершити сесію", async ctx => {
+            ctx.scene.leave();
+            
+            ctx.session.messages = [];
+            
+            const message = await ctx.reply("Що ви хочете зробити з цією базою даних?", databaseFunctionsKeyboard);
+            ctx.session.recentKeyboardId = message.message_id;
+        })
 
         // Message to Chat GPT handler
         scene.on("text", this.sendRequest);
@@ -21,7 +29,7 @@ class MakeChatGPTRequestScene {
     }
 
     async sendRequest(ctx) {
-        const databaseData = await ctx.session.googleSheets.readData(ctx.session.currentDatabaseId);
+        const databaseData = await ctx.session.googleSheetsService.readData(ctx.session.currentDatabaseId);
 
         // Get columns names
         const columnsNames = []

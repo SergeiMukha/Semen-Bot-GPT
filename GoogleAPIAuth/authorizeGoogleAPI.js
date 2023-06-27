@@ -5,12 +5,15 @@ const {authenticate} = require('@google-cloud/local-auth');
 const {google} = require('googleapis');
 
 // If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const SCOPES = [
+  'https://www.googleapis.com/auth/spreadsheets',
+  "https://www.googleapis.com/auth/drive"
+];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const TOKEN_PATH = path.join(process.cwd(), 'GoogleSheetsAuth/token.json');
-const CREDENTIALS_PATH = path.join(process.cwd(), 'GoogleSheetsAuth/credentials.json');
+const TOKEN_PATH = path.join(process.cwd(), 'GoogleAPIAuth/token.json');
+const CREDENTIALS_PATH = path.join(process.cwd(), 'GoogleAPIAuth/credentials.json');
 
 /**
  * Reads previously authorized credentials from the save file.
@@ -65,8 +68,19 @@ async function authorize() {
   return client;
 }
 
-module.exports = async () => {
+async function getSheets() {
   const auth = await authorize();
 
   return google.sheets({ version: "v4", auth })
+};
+
+async function getDrive() {
+  const auth = await authorize();
+
+  return google.drive({ version: "v3", auth })
+}
+
+module.exports = {
+  getSheets,
+  getDrive
 }

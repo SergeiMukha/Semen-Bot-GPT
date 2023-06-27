@@ -1,17 +1,15 @@
-const { startKeyboard } = require("../keyboards");
-
-require("dotenv").config();
+const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 async function deleteDatabaseHandler(ctx) {
-    const databasesList = await ctx.session.googleSheets.readData(process.env.DATABASES_TABLE_ID);
+    // Delete database
+    await ctx.session.googleDriveService.deleteItem(ctx.session.currentDatabaseId);
 
-    for(let i = 0; i < databasesList.length; i++) {
-        if(databasesList[i][1] == ctx.session.currentDatabaseId) {
-            await ctx.session.googleSheets.deleteRow(i);
-        } 
-    }
+    // Delete recent keyboard
+    deleteRecentKeyboard(ctx);
 
-    return await ctx.reply("База успішно видалена.", startKeyboard);
+    await ctx.reply("База успішно видалена.");
+
+    return ctx.scene.enter("chooseDatabase");
 }
 
 module.exports = deleteDatabaseHandler;

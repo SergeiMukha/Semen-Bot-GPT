@@ -1,8 +1,10 @@
-function deleteRecentKeyboard(ctx) {
+async function deleteRecentKeyboard(ctx) {
     const keyboardId = ctx.session.recentKeyboardId;
     const chatId = ctx.chat.id;
 
-    ctx.telegram.deleteMessage(chatId, keyboardId);
+    try {
+        await ctx.telegram.deleteMessage(chatId, keyboardId);
+    } catch {};
 }
 
 module.exports = deleteRecentKeyboard;

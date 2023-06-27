@@ -1,8 +1,9 @@
 function validateUsage(ctx) {
-    const googleSheetsParser = ctx.session.googleSheets;
+    const googleSheetsService = ctx.session.googleSheetsService;
+    const googleDriveService = ctx.session.googleDriveService;
     const messages = ctx.session.messages;
 
-    if(!googleSheetsParser || !messages) {
+    if(!googleSheetsService || !googleDriveService || !messages) {
         return false;
     }
 

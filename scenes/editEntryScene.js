@@ -14,13 +14,17 @@ class EditEntryScene {
         // Define actions buttons
         scene.action("resumeEntryEdit", ctx => ctx.scene.enter("getEntryRow"));
         scene.action("getBackToRow", ctx => { ctx.scene.enter("editDatabase"); deleteRecentKeyboard(ctx); });
-        scene.action("getBackStart", ctx => {
+        scene.action("getBackStart", async ctx => {
+            // Delete recent keyboard
+            deleteRecentKeyboard(ctx);
+
             // Delete scene data and leave it
             delete ctx.session.editSceneData;
             ctx.scene.leave();
 
             // Send start keyboard
-            ctx.reply("Оберіть дію:", startKeyboard);
+            const message = await ctx.reply("Оберіть дію:", startKeyboard);
+            ctx.session.recentKeyboardId = message.message_id;
         });
 
         // Define insuring handler
@@ -48,7 +52,7 @@ class EditEntryScene {
         rowData[entryId] = newValue;
 
         // Update row in DB with new row
-        await ctx.session.googleSheets.updateRow(
+        await ctx.session.googleSheetsService.updateRow(
             ctx.session.currentDatabaseId,
             rowId,
             rowData

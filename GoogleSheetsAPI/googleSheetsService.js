@@ -1,8 +1,8 @@
 require("dotenv").config();
-const getSheets = require("./authorizeGoogleSheets");
+const { getSheets } = require("../GoogleAPIAuth/authorizeGoogleAPI");
 
 class GoogleSheets {
-    // Resolving promise to automaticallu initialize sheet
+    // Resolving promise to automaticallu initialize sheets API
     constructor() {
         return Promise.resolve()
         .then(async () => {
@@ -64,7 +64,7 @@ class GoogleSheets {
         await this.sheets.spreadsheets.values.update(
             {
                 spreadsheetId: spreadsheetId,
-                range: `Sheet!A${parseInt(rowId)+1}:F${parseInt(rowId)+1}`,
+                range: `Sheet!A${parseInt(rowId)+1}:ZZ${parseInt(rowId)+1}`,
                 valueInputOption: 'RAW',
                 resource: resource
             },

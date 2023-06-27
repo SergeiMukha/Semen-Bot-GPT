@@ -2,12 +2,13 @@ require("dotenv").config();
 
 const { Scenes: { BaseScene } } = require("telegraf");
 const { startKeyboard } = require("../keyboards");
+const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
-class AddDatabaseScene {
+class CreateDatabaseScene {
     constructor() {
-        const scene = new BaseScene("addDatabase");
+        const scene = new BaseScene("createDatabase");
 
-        scene.enter(ctx => ctx.reply("Введіть назву для бази даних:", { reply_markup: { remove_keyboard: true } }));
+        scene.enter(ctx => { deleteRecentKeyboard(ctx); ctx.reply("Введіть назву для бази даних:", { reply_markup: { remove_keyboard: true } }); });
         
         scene.on("text", this.createDatabase);
 
@@ -21,13 +22,13 @@ class AddDatabaseScene {
 
         try {
             // Create database and add it to databases list
-            const spreadsheetId = await ctx.session.googleSheets.createDatabase(name);
-            await ctx.session.googleSheets.writeData(process.env.DATABASES_TABLE_ID, [[name, spreadsheetId]]);
-            
+            const spreadsheetId = await ctx.session.googleSheetsService.createDatabase(name);
+            await ctx.session.googleDriveService.moveSpreadsheetToFolder(spreadsheetId, ctx.session.currentFolderId);
+
             // Add columns names and delete first unnecessary sheet
             const columnsNames = ["Ім'я", "Адреса", "Номер телефону", "Що продає", "Що купує", "Коментар"];
-            await ctx.session.googleSheets.writeData(spreadsheetId, [columnsNames]);
-            await ctx.session.googleSheets.deleteFirstSheet(spreadsheetId);
+            await ctx.session.googleSheetsService.writeData(spreadsheetId, [columnsNames]);
+            await ctx.session.googleSheetsService.deleteFirstSheet(spreadsheetId);
         } catch (err) {
             ctx.reply("Помилка. Детальну інформацію щодо помилки ви можете побачити в логах бота.")
     
@@ -36,8 +37,10 @@ class AddDatabaseScene {
     
         ctx.scene.leave();
     
-        return ctx.reply("База даних створена.", startKeyboard);
+        await ctx.reply("База даних створена.");
+
+        return ctx.scene.enter("chooseDatabase");
     }
 }
 
-module.exports = AddDatabaseScene;
+module.exports = CreateDatabaseScene;

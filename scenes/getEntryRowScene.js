@@ -8,7 +8,7 @@ class GetEntryRowScene {
 
         // Define enter and back handlers
         scene.enter(this.enter)
-        scene.action("back", ctx => { deleteRecentKeyboard(ctx); ctx.scene.enter("editDatabase") });
+        scene.action("back", ctx => { ctx.scene.enter("editDatabase") });
 
         // Define handler for getting data from callback query
         scene.on("callback_query", ctx => {
@@ -33,7 +33,7 @@ class GetEntryRowScene {
         const rowId = ctx.session.editSceneData.rowId;
 
         // Get data of this row from the DB
-        const row = await ctx.session.googleSheets.getRow(ctx.session.currentDatabaseId, rowId);
+        const row = await ctx.session.googleSheetsService.getRow(ctx.session.currentDatabaseId, rowId);
         ctx.session.editSceneData.rowData = row;
 
         // Configure inline keyboard array

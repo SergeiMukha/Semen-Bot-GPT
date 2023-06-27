@@ -6,12 +6,18 @@ class EditDatabaseScene {
     constructor() {
         const scene = new BaseScene("editDatabase");
 
-        // Define enter, cancel and back handlers
+        // Define enter and back handlers
         scene.enter(this.enter);
     
-        scene.action("cancel", ctx => { deleteRecentKeyboard(ctx); ctx.scene.leave(); ctx.reply("Оберіть дію:", startKeyboard) });
-        scene.action("back", ctx => { deleteRecentKeyboard(ctx); ctx.scene.leave(); ctx.reply("Оберіть дію:", databaseFunctionsKeyboard) });
-        scene.action("addNewEntry", ctx => { deleteRecentKeyboard(ctx); ctx.scene.enter("addDatabaseEntry") })
+        scene.action("back", async ctx => {
+            deleteRecentKeyboard(ctx);
+
+            ctx.scene.leave();
+            
+            const message = await ctx.reply("Оберіть дію:", databaseFunctionsKeyboard);
+            ctx.session.recentKeyboardId = message.message_id;
+        });
+        scene.action("addNewEntry", ctx => { ctx.scene.enter("addDatabaseEntry") })
 
         // Define handler for getting data from callback query
         scene.on("callback_query", (ctx) => {
@@ -29,17 +35,14 @@ class EditDatabaseScene {
     }
 
     async enter(ctx) {
-        // Delete default keyboard
-        ctx.reply("Ховаю клавіатуру", {
-            reply_markup: { remove_keyboard: true },
-        })
-        .then(message => ctx.telegram.deleteMessage(ctx.chat.id, message.message_id))
+        // Delete recent keyboard
+        deleteRecentKeyboard(ctx);
 
         // Define object where all scene data will store
         ctx.session.editSceneData = {};
 
         // Get DB data
-        const data = await ctx.session.googleSheets.readData(ctx.session.currentDatabaseId);
+        const data = await ctx.session.googleSheetsService.readData(ctx.session.currentDatabaseId);
         if(!data) ctx.reply("Ця база даних пуста.")
         data.shift();
 
@@ -65,14 +68,11 @@ class EditDatabaseScene {
             inlineKeyboardArray.push([button]);
         }
 
-        // Define cancel and back buttons and push it into array
-        const backButton = Markup.button.callback("Назад", "back");
-        const cancelButton = Markup.button.callback("Скасувати", "cancel");
-
-        inlineKeyboardArray.push([backButton, cancelButton]);
-
+        // Define and add new entry and back buttons and push it into array
         const addNewEntryButon = Markup.button.callback("Додати новий контакт", "addNewEntry");
-        inlineKeyboardArray.push([addNewEntryButon]);
+        const backButton = Markup.button.callback("Назад", "back");
+
+        inlineKeyboardArray.push([addNewEntryButon], [backButton]);
 
         // Define inline keyboard with that array
         const inlineKeyboard = Markup.inlineKeyboard(inlineKeyboardArray);

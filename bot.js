@@ -4,14 +4,15 @@ require("dotenv").config();
 const { Telegraf, Scenes, session } = require('telegraf');
 
 // Define scenes
-const ReadDatabaseScene = require("./scenes/readDatabaseScene");
-const GetDatabaseScene = require("./scenes/getDatabaseScene");
+const ReviewDatabaseScene = require("./scenes/reviewDatabaseScene");
+const ChooseDatabaseScene = require("./scenes/chooseDatabaseScene");
 const AddDatabaseEntryScene = require("./scenes/addDatabaseEntryScene");
-const AddDatabaseScene = require("./scenes/addDatabaseScene");
+const CreateDatabaseScene = require("./scenes/createDatabaseScene");
 const EditDatabaseScene = require("./scenes/editDatabaseScene");
 const GetEntryRowScene = require("./scenes/getEntryRowScene");
 const EditEntryScene = require("./scenes/editEntryScene");
 const MakeChatGPTRequestScene = require("./scenes/makeChatGPTRequestScene");
+const CreateFolderScene = require("./scenes/createFolderScene");
 
 // Define handlers
 const startHandler = require("./handlers/startHandler");
@@ -25,14 +26,15 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // Create a stage
 const stage = new Scenes.Stage([
-    new ReadDatabaseScene(),
-    new GetDatabaseScene(),
+    new ReviewDatabaseScene(),
+    new ChooseDatabaseScene(),
     new EditDatabaseScene(),
     new AddDatabaseEntryScene(),
     new GetEntryRowScene(),
     new EditEntryScene(),
     new MakeChatGPTRequestScene(),
-    new AddDatabaseScene()
+    new CreateDatabaseScene(),
+    new CreateFolderScene()
 ])
 
 // Connect telegraf sessions
@@ -42,8 +44,20 @@ bot.use(stage.middleware());
 // Start command handler
 bot.start(startHandler);
 
+bot.on('audio', async (ctx) => {
+    const audio = ctx.message.audio;
+    
+    // Get the file ID of the audio file
+    const fileId = audio.file_id;
+    
+    // Get the URL for the audio file using the file ID
+    const fileLink = await ctx.telegram.getFileLink(fileId);
+    
+    console.log('Audio file URL:', fileLink);
+});    
+
 // Validate necessary components were initialized
-bot.on("message", (ctx, next) => {
+bot.on("callback_query", (ctx, next) => {
     if(!validateUsage(ctx)) {
         ctx.reply("Для використання вам спочатку потрібно запустити команду /start.")
         
@@ -53,21 +67,18 @@ bot.on("message", (ctx, next) => {
     next();
 })
 
-// Add new database
-bot.hears("Створити базу даних", (ctx) => { ctx.scene.enter("addDatabase") });
-
 // Handle keyboard buttons
-bot.hears("Вибрати базу даних", (ctx) => ctx.scene.enter("getDatabase"));
+bot.action("createNewDatabase", (ctx) => { ctx.scene.enter("addDatabase") });
 
-bot.hears("Переглянути базу даних", (ctx) => ctx.scene.enter("readDatabase"));
+bot.action("chooseDatabase", (ctx) => ctx.scene.enter("chooseDatabase"));
 
-bot.hears("Редагувати базу даних", (ctx) => ctx.scene.enter("editDatabase"));
+bot.action("reviewDatabase", (ctx) => ctx.scene.enter("reviewDatabase"));
 
-bot.hears("Видалити базу даних", deleteDatabaseHandler);
+bot.action("editDatabase", (ctx) => ctx.scene.enter("editDatabase"));
 
-bot.hears("Відправити запит Chat GPT", ctx => ctx.scene.enter("makeChatGPTRequest"));
+bot.action("deleteDatabase", deleteDatabaseHandler);
 
-bot.hears("Повернутись на початок", startHandler);
+bot.action("makeChatGPTRequest", ctx => ctx.scene.enter("makeChatGPTRequest"));
 
 // Clear session
 bot.command("clear_session", (ctx) => {
