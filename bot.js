@@ -97,10 +97,12 @@ bot.command("clear_session", (ctx) => {
 });
 
 // Error handler
-// bot.catch((err, ctx) => {
-//     console.error(`Error: ${err}`);
-//     ctx.reply('Помилка, детальніше про помилку у логах бота.');
-// });
+bot.catch((err, ctx) => {
+    console.error(`Error: ${err}`);
+    ctx.reply('Помилка, детальніше про помилку у логах бота.');
+
+    return startHandler(ctx);
+});
 
 // Start the bot
 bot.launch()
