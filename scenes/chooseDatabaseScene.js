@@ -43,7 +43,12 @@ class ChooseDatabaseScene {
         // Define inline keyboard with inline keyboard array
         const inlineKeyboard = Markup.inlineKeyboard(inlineKeyboardArray);
 
-        const message = await ctx.replyWithHTML("Ось список папок і таблиць:", inlineKeyboard);
+        // Get current folder's name
+        const folderName = await ctx.session.googleDriveService.getFolderName(ctx.session.currentFolderId);
+
+        const messageText = `Наразі ви у папці <b>${folderName}</b>\nОсь список папок і таблиць в цій папці:`
+
+        const message = await ctx.replyWithHTML(messageText, inlineKeyboard);
         ctx.session.recentKeyboardId = message.message_id;
 
         return;

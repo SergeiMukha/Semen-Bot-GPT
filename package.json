@@ -1,15 +1,12 @@
 {
   "dependencies": {
-    "@deepgram/sdk": "^2.2.0",
     "@google-cloud/local-auth": "^2.1.0",
     "@google-cloud/speech": "^5.5.0",
     "axios": "^1.4.0",
     "dotenv": "^16.3.0",
     "googleapis": "^105.0.0",
-    "microsoft-cognitiveservices-speech-sdk": "^1.29.0",
     "openai": "^3.2.1",
     "replicate": "^0.12.3",
-    "telegraf": "^4.12.2",
-    "telegram-keyboard": "^2.3.2"
+    "telegraf": "^4.12.2"
   }
 }
