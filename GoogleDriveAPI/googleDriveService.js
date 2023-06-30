@@ -1,6 +1,10 @@
+const axios = require("axios");
+const fs = require("fs");
 const stream = require('stream');
 
-const getFileBufferByUrl = require("../utils/getFileBufferByUrl");
+const { Telegraf } = require("telegraf");
+
+const bot = new Telegraf("5904816830:AAE5SfKi3G1NKpwfU1g0MGzCyXOJeA8HtOE");
 
 const { getDrive } = require("../GoogleAPIAuth/authorizeGoogleAPI");
 
@@ -119,14 +123,10 @@ class GoogleDriveService {
     async uploadPhotoOrVideoByUrl(url) {
         const fileName = url.split("/")[6].split(".")[0];
 
-        console.log(url)
-
         // Download file from URL
-        const response = await getFileBufferByUrl(url);
-        console.log("Response Got")
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
         
-        const fileBuffer = response;
-        console.log("Buffer Created")
+        const fileBuffer = Buffer.from(response.data)
 
         // Upload file to Google Drive
         const fileMetadata = {
@@ -137,13 +137,11 @@ class GoogleDriveService {
             mimeType: response.headers['content-type'],
             body: this.createStreamFromBuffer(fileBuffer),
         };
-        console.log("Stream Created");
 
         const uploadedFile = await this.drive.files.create({
             requestBody: fileMetadata,
             media,
         });
-        console.log("File uploaded");
 
         return uploadedFile.data.id;
     }
