@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
+const startHandler = require("../handlers/startHandler");
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 class CreateDatabaseScene {
@@ -22,6 +23,13 @@ class CreateDatabaseScene {
         ctx.session.name = name;
 
         const templates = await ctx.session.googleSheetsService.readData(process.env.TEMPLATES_TABLE_ID);
+        if(templates.slice(1).length == 0) {
+            await ctx.reply("Ви ще не створили жодного шаблону.");
+
+            await ctx.scene.leave();
+
+            return startHandler(ctx);
+        }
         
         // Configure inline keyboard with templates
         const inlineKeyboardArray = [];
