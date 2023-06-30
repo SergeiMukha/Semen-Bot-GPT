@@ -38,8 +38,8 @@ class CreateDatabaseScene {
             const templateName = templates[i][0];
             const templateData = templates[i].slice(1);
 
-            const button = Markup.button.callback(templateName, JSON.stringify(templateData));
-            inlineKeyboardArray.push(button);
+            const button = Markup.button.callback(templateName, i);
+            inlineKeyboardArray.push([button]);
         };
 
         // Define inline keyboard with inline keyboard array
@@ -52,7 +52,7 @@ class CreateDatabaseScene {
     }
 
     async createDatabase(ctx) {
-        const columns = JSON.parse(ctx.callbackQuery.data);
+        const columns = (await ctx.session.googleSheetsService.readData(process.env.TEMPLATES_TABLE_ID))[ctx.callbackQuery.data].slice(1);
 
         await ctx.reply("Створюю базу даних...");
         try {
