@@ -1,5 +1,4 @@
 const { Scenes: { BaseScene } } = require("telegraf");
-const { configureInlineKeyboardWithFolderItems } = require("../keyboards");
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 class CreateFolderScene {

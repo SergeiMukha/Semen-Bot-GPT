@@ -1,7 +1,7 @@
 require("dotenv").config();
 const { getSheets } = require("../GoogleAPIAuth/authorizeGoogleAPI");
 
-class GoogleSheets {
+class GoogleSheetsService {
     // Resolving promise to automaticallu initialize sheets API
     constructor() {
         return Promise.resolve()
@@ -18,7 +18,7 @@ class GoogleSheets {
         // Get all data from the sheet
         const response = await this.sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: "Sheet"
+            range: await this.getFirstSheetName(spreadsheetId)
         })
 
         return response.data.values;
@@ -28,7 +28,7 @@ class GoogleSheets {
     async getRow(spreadsheetId, rowId) {
         const response = await this.sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: "Sheet"
+            range: await this.getFirstSheetName(spreadsheetId)
         })
 
         return response.data.values[rowId];
@@ -43,7 +43,7 @@ class GoogleSheets {
         await this.sheets.spreadsheets.values.append(
             {
                 spreadsheetId: spreadsheetId,
-                range: "Sheet",
+                range: await this.getFirstSheetName(spreadsheetId),
                 valueInputOption: 'RAW',
                 resource: resource
             },
@@ -64,7 +64,7 @@ class GoogleSheets {
         await this.sheets.spreadsheets.values.update(
             {
                 spreadsheetId: spreadsheetId,
-                range: `Sheet!A${parseInt(rowId)+1}:ZZ${parseInt(rowId)+1}`,
+                range: `${await this.getFirstSheetName(spreadsheetId)}!A${parseInt(rowId)+1}:ZZ${parseInt(rowId)+1}`,
                 valueInputOption: 'RAW',
                 resource: resource
             },
@@ -108,10 +108,10 @@ class GoogleSheets {
         return spreadsheetId;
     }
     
-    async deleteRow(rowId) {
+    async deleteRow(spreadsheetId, rowId) {
         await this.sheets.spreadsheets.values.clear({
-            spreadsheetId: process.env.DATABASES_TABLE_ID,
-            range: `Sheet!A${parseInt(rowId)+1}:ZZ${parseInt(rowId)+1}`
+            spreadsheetId: spreadsheetId,
+            range: `${await this.getFirstSheetName(spreadsheetId)}!A${parseInt(rowId)+1}:ZZ${parseInt(rowId)+1}`
         })
     }
 
@@ -136,12 +136,26 @@ class GoogleSheets {
             },
         });
     }
+
+    async getFirstSheetName(spreadsheetId) {
+        const { data } = await this.sheets.spreadsheets.get({
+            spreadsheetId,
+            fields: 'sheets.properties',
+        });
+      
+          // Get the properties of the first sheet
+        const firstSheet = data.sheets[0].properties;
+        
+        return firstSheet.title;
+    }
 }
 
 // const start = async () => {
-//     const googleSheetsParser = await new GoogleSheets();
+//     const googleSheetsService = await new GoogleSheetsService();
+
+//     googleSheetsService.readData("1JzJyIz32A_NWSAOfOvpHwk6nm7VGqIMbjhVXZcqXRoU");
 // }
 
 // start()
 
-module.exports = GoogleSheets
+module.exports = GoogleSheetsService;

@@ -1,3 +1,11 @@
+const axios = require("axios");
+const fs = require("fs");
+const stream = require('stream');
+
+const { Telegraf } = require("telegraf");
+
+const bot = new Telegraf("5904816830:AAE5SfKi3G1NKpwfU1g0MGzCyXOJeA8HtOE");
+
 const { getDrive } = require("../GoogleAPIAuth/authorizeGoogleAPI");
 
 class GoogleDriveService {
@@ -99,12 +107,99 @@ class GoogleDriveService {
             fileId: itemId,
         });
     }
+
+    async getAllGoogleSheetsFilesOnDrive() {
+        const response = await this.drive.files.list({
+            q: "mimeType='application/vnd.google-apps.spreadsheet'",
+            fields: 'files(id, name)',
+        });
+        
+        const sheetsFiles = response.data.files;
+
+        console.log(sheetsFiles);
+        return sheetsFiles;    
+    }
+
+    async uploadPhotoOrVideoByUrl(url) {
+        const fileName = url.split("/")[6].split(".")[0];
+
+        // Download file from URL
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        
+        const fileBuffer = Buffer.from(response.data)
+
+        // Upload file to Google Drive
+        const fileMetadata = {
+            name: fileName
+        };
+
+        const media = {
+            mimeType: response.headers['content-type'],
+            body: this.createStreamFromBuffer(fileBuffer),
+        };
+
+        const uploadedFile = await this.drive.files.create({
+            requestBody: fileMetadata,
+            media,
+        });
+
+        return uploadedFile.data.id;
+    }
+
+    async getFileMimeType(fileId) {
+        const response = await this.drive.files.get({
+            fileId,
+            fields: 'mimeType',
+        });
+    
+        const mimeType = response.data.mimeType;
+        
+        return mimeType;
+    }
+
+    async getFileBuffer(fileId) {
+        const res = await this.drive.files.get({ fileId, alt: 'media' }, { responseType: 'arraybuffer' });
+
+        const fileBuffer = Buffer.from(res.data);
+        const mimeType = await this.getFileMimeType(fileId);
+
+        return {
+            fileBuffer: fileBuffer,
+            mimeType: mimeType
+        }
+    }
+
+    async getFileName(fileId) {
+        const response = await this.drive.files.get({
+            fileId,
+            fields: 'name',
+        });
+        
+        return response.data.name;
+    }
+
+    async changeFileName(fileId, newFileName) {
+        const fileMetadata = {
+            name: newFileName,
+        };
+      
+        await this.drive.files.update({
+            fileId,
+            requestBody: fileMetadata,
+        });
+    }
+
+    createStreamFromBuffer(buffer) {
+        const readable = new stream.PassThrough();
+        readable.end(buffer);
+        return readable;
+    }    
 }
 
 // const start = async () => {
 //     const googleDriveService = await new GoogleDriveService();
 
-//     await googleDriveService.getFolderParent("root");
+//     await googleDriveService.changeFileName("1rlphpdyLi3y93mgompNcntEvhWroqI_6kwanwlA8-mU", "Testing Database");
 // }
 
 // start();

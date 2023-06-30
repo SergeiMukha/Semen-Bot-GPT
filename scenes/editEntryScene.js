@@ -1,7 +1,8 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
+const startHandler = require("../handlers/startHandler");
 
-const { startKeyboard } = require("../keyboards");
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
+const updateDatabaseLastChangedTime = require("../utils/updateDatabaseLastChangedTime");
 
 class EditEntryScene {
     constructor() {
@@ -22,9 +23,8 @@ class EditEntryScene {
             delete ctx.session.editSceneData;
             ctx.scene.leave();
 
-            // Send start keyboard
-            const message = await ctx.reply("Оберіть дію:", startKeyboard);
-            ctx.session.recentKeyboardId = message.message_id;
+            // Execute start handler
+            startHandler(ctx);
         });
 
         // Define insuring handler
@@ -50,6 +50,11 @@ class EditEntryScene {
         
         // Update array with new value
         rowData[entryId] = newValue;
+
+        const date = new Date();
+        rowData[ctx.session.columns.length+1] = date.toISOString();
+
+        await updateDatabaseLastChangedTime(ctx);
 
         // Update row in DB with new row
         await ctx.session.googleSheetsService.updateRow(

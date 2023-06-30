@@ -13,6 +13,7 @@ const GetEntryRowScene = require("./scenes/getEntryRowScene");
 const EditEntryScene = require("./scenes/editEntryScene");
 const MakeChatGPTRequestScene = require("./scenes/makeChatGPTRequestScene");
 const CreateFolderScene = require("./scenes/createFolderScene");
+const CreateTemplateScene = require("./scenes/createTemplateScene");
 
 // Define handlers
 const startHandler = require("./handlers/startHandler");
@@ -34,7 +35,8 @@ const stage = new Scenes.Stage([
     new EditEntryScene(),
     new MakeChatGPTRequestScene(),
     new CreateDatabaseScene(),
-    new CreateFolderScene()
+    new CreateFolderScene(),
+    new CreateTemplateScene()
 ])
 
 // Connect telegraf sessions
@@ -43,6 +45,8 @@ bot.use(stage.middleware());
 
 // Start command handler
 bot.start(startHandler);
+
+bot.on("video", async ctx => console.log(await ctx.telegram.getFileLink(ctx.message.video.file_id)));
 
 bot.on('audio', async (ctx) => {
     const audio = ctx.message.audio;
@@ -68,6 +72,8 @@ bot.on("callback_query", (ctx, next) => {
 })
 
 // Handle keyboard buttons
+bot.action("createTemplate", (ctx) => ctx.scene.enter("createTemplate"));
+
 bot.action("createNewDatabase", (ctx) => { ctx.scene.enter("addDatabase") });
 
 bot.action("chooseDatabase", (ctx) => ctx.scene.enter("chooseDatabase"));
@@ -87,10 +93,10 @@ bot.command("clear_session", (ctx) => {
 });
 
 // Error handler
-bot.catch((err, ctx) => {
-    console.error(`Error: ${err}`);
-    ctx.reply('Помилка, детальніше про помилку у логах бота.');
-});
+// bot.catch((err, ctx) => {
+//     console.error(`Error: ${err}`);
+//     ctx.reply('Помилка, детальніше про помилку у логах бота.');
+// });
 
 // Start the bot
 bot.launch()

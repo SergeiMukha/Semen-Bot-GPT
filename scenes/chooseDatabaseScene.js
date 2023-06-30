@@ -1,7 +1,8 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
 const deleteFolderHandler = require("../handlers/deleteFolderHandler");
 const startHandler = require("../handlers/startHandler");
-const { databaseFunctionsKeyboard, configureInlineKeyboardWithFolderItems } = require("../keyboards");
+const { configureFolderItemsInlineKeyboardArray } = require("../keyboards/dynamicKeyboards");
+const { databaseFunctionsKeyboard } = require("../keyboards/staticKeyboards");
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 class ChooseDatabaseScene {
@@ -16,8 +17,6 @@ class ChooseDatabaseScene {
         scene.action("deleteFolder", deleteFolderHandler)
 
         scene.on("callback_query", this.getItem);
-        
-        scene.on("message", (ctx) => ctx.reply("Це не те, що мені треба"));
 
         return scene;
     }
@@ -29,8 +28,20 @@ class ChooseDatabaseScene {
         // Delete recent keyboard
         deleteRecentKeyboard(ctx);
 
+        // Get items of folder
+        const items = await ctx.session.googleDriveService.getItemsInFolder(ctx.session.currentFolderId);
+
         // Get inline keyboard with items in folder and send it to user
-        const inlineKeyboard = await configureInlineKeyboardWithFolderItems(ctx);
+        const inlineKeyboardArray = await configureFolderItemsInlineKeyboardArray(items);
+
+        if(ctx.session.currentFolderId!="root" && ctx.session.currentFolderId != "0ALn1mc-2LlA9Uk9PVA") {
+            const deleteFolderButton = Markup.button.callback("\u{1F5D1} Видалити папку", "deleteFolder");
+
+            inlineKeyboardArray.splice(inlineKeyboardArray.length-1, 0, [deleteFolderButton]);
+        }
+
+        // Define inline keyboard with inline keyboard array
+        const inlineKeyboard = Markup.inlineKeyboard(inlineKeyboardArray);
 
         const message = await ctx.replyWithHTML("Ось список папок і таблиць:", inlineKeyboard);
         ctx.session.recentKeyboardId = message.message_id;
