@@ -189,17 +189,57 @@ class GoogleDriveService {
         });
     }
 
+    async moveFile(fileId, folderId) {
+        await this.drive.files.update({
+            fileId,
+            addParents: folderId,
+            fields: 'id, parents',
+        });
+    }
+
+    async getFoldersInFolder(folderId) {
+        const response = await this.drive.files.list({
+            q: `'${folderId}' in parents and mimeType = 'application/vnd.google-apps.folder'`,
+            fields: 'files(id, name)',
+        });
+        
+        const folders = response.data.files;
+
+        return folders;
+    }
+
+    async isRootFolder(folderId) {
+        const response = await this.drive.files.get({
+            fileId: folderId,
+            fields: 'id, parents',
+        });
+    
+        const file = response.data;
+        const isRoot = !file.parents;
+
+        return isRoot;
+    }
+
+    async getFolderName(folderId) {
+        const response = await this.drive.files.get({
+            fileId: folderId,
+            fields: "name"
+        })
+
+        return response.data.name;
+    }
+
     createStreamFromBuffer(buffer) {
         const readable = new stream.PassThrough();
         readable.end(buffer);
         return readable;
-    }    
+    }
 }
 
 // const start = async () => {
 //     const googleDriveService = await new GoogleDriveService();
 
-//     await googleDriveService.changeFileName("1rlphpdyLi3y93mgompNcntEvhWroqI_6kwanwlA8-mU", "Testing Database");
+//     await googleDriveService.getFolderName("1K2FazNzc9IJq_KUb-wNjBaqTSt3agVol");
 // }
 
 // start();

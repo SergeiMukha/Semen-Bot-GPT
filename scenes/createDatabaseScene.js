@@ -7,7 +7,7 @@ class CreateDatabaseScene {
     constructor() {
         const scene = new BaseScene("createDatabase");
 
-        scene.enter(ctx => { deleteRecentKeyboard(ctx); ctx.reply("Введіть назву для бази даних:", { reply_markup: { remove_keyboard: true } }); });
+        scene.enter(ctx => { deleteRecentKeyboard(ctx); ctx.reply("Введіть назву для бази даних:"); });
         
         scene.on("text", this.getName);
         scene.on("callback_query", this.createDatabase);
@@ -46,6 +46,7 @@ class CreateDatabaseScene {
     async createDatabase(ctx) {
         const columns = JSON.parse(ctx.callbackQuery.data);
 
+        await ctx.reply("Створюю базу даних...");
         try {
             // Create database and add it to databases list
             const spreadsheetId = await ctx.session.googleSheetsService.createDatabase(ctx.session.name);

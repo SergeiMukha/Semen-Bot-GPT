@@ -70,7 +70,30 @@ async function configurePageInlineKeyboardArray(data, page, columnsLength) {
     return inlineKeyboardArray;
 }
 
+async function configureFoldersInlineKeyboardArray(folders) {
+    // Configure inline keyboard array with this list
+    const inlineKeyboardArray = []
+
+    for(let i = 0; i < folders.length; i++) {
+        const folder = folders[i];
+
+        const btnText = `\u{1F4C1} ${folder.name}`;
+        const btnCallbackData = folder.id;
+
+        const button = Markup.button.callback(btnText, btnCallbackData);
+        inlineKeyboardArray.push([button]);
+    }
+
+    // Define back, create database and create folder button button
+    const moveButton = Markup.button.callback("\u{1F4E9} Перемістити сюди", "move");
+
+    inlineKeyboardArray.push([moveButton]);
+
+    return inlineKeyboardArray;
+}
+
 module.exports = {
     configureFolderItemsInlineKeyboardArray,
-    configurePageInlineKeyboardArray
+    configurePageInlineKeyboardArray,
+    configureFoldersInlineKeyboardArray
 }

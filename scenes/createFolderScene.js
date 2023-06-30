@@ -15,9 +15,11 @@ class CreateFolderScene {
     }
 
     async getName(ctx) {
+        // Get name and folder ID
         const name = ctx.message.text;
         const parentFolderId = ctx.session.currentFolderId;
 
+        // Create new folder
         await ctx.session.googleDriveService.createFolder(name, parentFolderId);
 
         return ctx.scene.enter("chooseDatabase");

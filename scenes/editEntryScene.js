@@ -67,9 +67,9 @@ class EditEntryScene {
 
         // Define actions inline keyboard
         const inlineKeyboard = Markup.inlineKeyboard([
-            [Markup.button.callback("Продовжити редагування контакту", "resumeEntryEdit")], // To resume editing row
-            [Markup.button.callback("Повернутись до вибору контакту", "getBackToRow")], // To get back to rows choosing
-            [Markup.button.callback("Повернутись до початку", "getBackStart")], // To get back to start keyboard
+            [Markup.button.callback("\u{1F519} Продовжити редагування контакту", "resumeEntryEdit")], // To resume editing row
+            [Markup.button.callback("\u{1F519} Повернутись до вибору контакту", "getBackToRow")], // To get back to rows choosing
+            [Markup.button.callback("\u{1F519} Повернутись до початку", "getBackStart")], // To get back to start keyboard
         ]);
 
         // Send keyboard and save its ID to be able to delete it later

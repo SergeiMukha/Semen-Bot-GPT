@@ -1,6 +1,7 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
 
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
+const updateDatabaseLastChangedTime = require("../utils/updateDatabaseLastChangedTime");
 
 class GetEntryRowScene {
     constructor() {
@@ -34,6 +35,7 @@ class GetEntryRowScene {
         const rowId = ctx.session.editSceneData.rowId;
 
         await ctx.session.googleSheetsService.deleteRow(ctx.session.currentDatabaseId, rowId);
+        await updateDatabaseLastChangedTime(ctx);
 
         await ctx.reply("Контакт видалено.");
 
@@ -65,8 +67,8 @@ class GetEntryRowScene {
         }
 
         // Define back and delete buttons and push it into array
-        const backButton = Markup.button.callback("Назад", "back");
-        const deleteButton = Markup.button.callback("Видалити контакт", "delete");
+        const backButton = Markup.button.callback("\u{1F519} Назад", "back");
+        const deleteButton = Markup.button.callback("\u{1F5D1} Видалити контакт", "delete");
         inlineKeyboardArray.push([deleteButton], [backButton]);
 
         // Define inline keyboard with array

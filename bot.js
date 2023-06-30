@@ -14,6 +14,7 @@ const EditEntryScene = require("./scenes/editEntryScene");
 const MakeChatGPTRequestScene = require("./scenes/makeChatGPTRequestScene");
 const CreateFolderScene = require("./scenes/createFolderScene");
 const CreateTemplateScene = require("./scenes/createTemplateScene");
+const MoveDatabaseScene = require("./scenes/moveDatabaseScene");
 
 // Define handlers
 const startHandler = require("./handlers/startHandler");
@@ -36,7 +37,8 @@ const stage = new Scenes.Stage([
     new MakeChatGPTRequestScene(),
     new CreateDatabaseScene(),
     new CreateFolderScene(),
-    new CreateTemplateScene()
+    new CreateTemplateScene(),
+    new MoveDatabaseScene()
 ])
 
 // Connect telegraf sessions
@@ -81,6 +83,8 @@ bot.action("chooseDatabase", (ctx) => ctx.scene.enter("chooseDatabase"));
 bot.action("reviewDatabase", (ctx) => ctx.scene.enter("reviewDatabase"));
 
 bot.action("editDatabase", (ctx) => ctx.scene.enter("editDatabase"));
+
+bot.action("moveDatabase", ctx => ctx.scene.enter("moveDatabase"));
 
 bot.action("deleteDatabase", deleteDatabaseHandler);
 

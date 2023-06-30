@@ -34,7 +34,7 @@ class ChooseDatabaseScene {
         // Get inline keyboard with items in folder and send it to user
         const inlineKeyboardArray = await configureFolderItemsInlineKeyboardArray(items);
 
-        if(ctx.session.currentFolderId!="root" && ctx.session.currentFolderId != "0ALn1mc-2LlA9Uk9PVA") {
+        if(!(await ctx.session.googleDriveService.isRootFolder(ctx.session.currentFolderId))) {
             const deleteFolderButton = Markup.button.callback("\u{1F5D1} Видалити папку", "deleteFolder");
 
             inlineKeyboardArray.splice(inlineKeyboardArray.length-1, 0, [deleteFolderButton]);

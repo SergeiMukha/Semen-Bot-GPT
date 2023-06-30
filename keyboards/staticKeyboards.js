@@ -2,14 +2,15 @@ require("dotenv").config();
 const { Markup } = require("telegraf");
 
 const startKeyboard = Markup.inlineKeyboard([
-    [Markup.button.callback("Вибрати базу даних", "chooseDatabase")],
-    [Markup.button.callback("Створити шаблон", "createTemplate")]
+    [Markup.button.callback("\u{1F5C3} Вибрати базу даних", "chooseDatabase")],
+    [Markup.button.callback("\u{1F4DD} Створити шаблон", "createTemplate")]
 ])
 const databaseFunctionsKeyboard = Markup.inlineKeyboard([
     [
-        Markup.button.callback("\u{1F4D5} Переглянути базу даних", "reviewDatabase"),
-        Markup.button.callback("\u{270F} Редагувати базу даних", "editDatabase"),
-        Markup.button.callback("\u{1F5D1} Видалити базу даних", "deleteDatabase")
+        Markup.button.callback("\u{1F4D5} Переглянути", "reviewDatabase"),
+        Markup.button.callback("\u{270F} Редагувати", "editDatabase"),
+        Markup.button.callback("\u{1F4E9} Перемістити", "moveDatabase"),
+        Markup.button.callback("\u{1F5D1} Видалити", "deleteDatabase")
     ],
     [Markup.button.callback("\u{1F916} Відправити запит Chat GPT", "makeChatGPTRequest")],
     [Markup.button.callback("\u{1F519} Повернутись до вибору бази даних", "chooseDatabase")]
