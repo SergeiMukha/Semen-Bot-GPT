@@ -1,7 +1,7 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
 
 const makeChatGPTRequest = require("../chatGPT/makeChatGPTRequest");
-const { databaseFunctionsKeyboard, endChatSessionKeyboard } = require("../keyboards/staticKeyboards");
+const { endChatSessionKeyboard, navigationKeyboard } = require("../keyboards/staticKeyboards");
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 class MakeChatGPTRequestScene {
@@ -12,21 +12,21 @@ class MakeChatGPTRequestScene {
         scene.enter(ctx => { deleteRecentKeyboard(ctx); ctx.reply("Введіть запит:", endChatSessionKeyboard); });
 
         // End Chat GPT session button handler
-        scene.hears("\u{1F6D1} Завершити сесію", async ctx => {
-            ctx.scene.leave();
-            
-            ctx.session.messages = [];
-            
-            const message = await ctx.reply("Що ви хочете зробити з цією базою даних?", databaseFunctionsKeyboard);
-            ctx.session.recentKeyboardId = message.message_id;
-
-            return;
-        })
+        scene.hears("\u{1F6D1} Завершити сесію", this.finishSession);
+        scene.hears("\u{1F519} Назад", this.finishSession);
 
         // Message to Chat GPT handler
         scene.on("text", this.sendRequest);
 
         return scene;
+    }
+
+    async finishSession(ctx) {
+        ctx.session.messages = [];
+
+        await ctx.reply("Сесію завершено.", navigationKeyboard)
+
+        return await ctx.scene.enter("databaseActions");
     }
 
     async sendRequest(ctx) {

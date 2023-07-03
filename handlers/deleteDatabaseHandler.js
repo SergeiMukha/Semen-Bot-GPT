@@ -1,6 +1,12 @@
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
+const getMediaFolderByDatabaseId = require("../utils/getMediaFolderByDatabaseId");
 
 async function deleteDatabaseHandler(ctx) {
+    // Delete media folder
+    const mediaFolderId = await getMediaFolderByDatabaseId(ctx);
+
+    await ctx.session.googleDriveService.deleteItem(mediaFolderId);
+
     // Delete database
     await ctx.session.googleDriveService.deleteItem(ctx.session.currentDatabaseId);
 

@@ -14,7 +14,7 @@ async function startHandler(ctx) {
     ctx.session.messages = [];
     ctx.session.googleSheetsService = await new GoogleSheetsService();
     ctx.session.googleDriveService = await new GoogleDriveService();
-
+    
     const message = await ctx.reply("Вітаю!", startKeyboard);
     ctx.session.recentKeyboardId = message.message_id;
 

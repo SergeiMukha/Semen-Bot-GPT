@@ -1,10 +1,5 @@
 const axios = require("axios");
-const fs = require("fs");
 const stream = require('stream');
-
-const { Telegraf } = require("telegraf");
-
-const bot = new Telegraf("5904816830:AAE5SfKi3G1NKpwfU1g0MGzCyXOJeA8HtOE");
 
 const { getDrive } = require("../GoogleAPIAuth/authorizeGoogleAPI");
 
@@ -97,7 +92,7 @@ class GoogleDriveService {
         await this.drive.files.update({
             fileId: spreadsheetId,
             addParents: folderId,
-            removeParents: 'root',
+            removeParents: 'previousParentId',
             fields: 'id, parents',
         });      
     }
@@ -120,7 +115,7 @@ class GoogleDriveService {
         return sheetsFiles;    
     }
 
-    async uploadPhotoOrVideoByUrl(url) {
+    async uploadPhotoOrVideoByUrl(url, folderId) {
         const fileName = url.split("/")[6].split(".")[0];
 
         // Download file from URL
@@ -130,12 +125,13 @@ class GoogleDriveService {
 
         // Upload file to Google Drive
         const fileMetadata = {
-            name: fileName
+            name: fileName,
+            parents: [folderId]
         };
 
         const media = {
             mimeType: response.headers['content-type'],
-            body: this.createStreamFromBuffer(fileBuffer),
+            body: createStreamFromBuffer(fileBuffer),
         };
 
         const uploadedFile = await this.drive.files.create({
@@ -229,17 +225,28 @@ class GoogleDriveService {
         return response.data.name;
     }
 
-    createStreamFromBuffer(buffer) {
-        const readable = new stream.PassThrough();
-        readable.end(buffer);
-        return readable;
+    async getFileIdByNameInFolder(fileName, folderId) {
+        const response = await this.drive.files.list({
+            q: `name = '${fileName}' and '${folderId}' in parents`,
+            fields: 'files(id)',
+          });
+      
+        const files = response.data.files;
+
+        return files[0].id;
     }
+}
+
+function createStreamFromBuffer(buffer) {
+    const readable = new stream.PassThrough();
+    readable.end(buffer);
+    return readable;
 }
 
 // const start = async () => {
 //     const googleDriveService = await new GoogleDriveService();
 
-//     await googleDriveService.getFolderName("1K2FazNzc9IJq_KUb-wNjBaqTSt3agVol");
+//     await googleDriveService.getFileIdByNameInFolder("hello", "1-xF8eOeQtSgm9eGgIa2Y8cSlMLTqXztw");
 // }
 
 // start();

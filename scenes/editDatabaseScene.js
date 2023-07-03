@@ -1,6 +1,5 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
 const { configurePageInlineKeyboardArray } = require("../keyboards/dynamicKeyboards");
-const { databaseFunctionsKeyboard } = require("../keyboards/staticKeyboards");
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 class EditDatabaseScene {
@@ -10,22 +9,15 @@ class EditDatabaseScene {
         // Define enter and back handlers
         scene.enter(this.enter.bind(this));
     
-        scene.action("back", async ctx => {
-            deleteRecentKeyboard(ctx);
-
-            ctx.scene.leave();
-            
-            const message = await ctx.reply("Оберіть дію:", databaseFunctionsKeyboard);
-            ctx.session.recentKeyboardId = message.message_id;
-        });
+        scene.action("back", this.back);
         scene.action("addNewEntry", ctx => { ctx.scene.enter("addDatabaseEntry") })
-        scene.action("next", ctx => { ctx.session.page += 1; return this.getPageData(ctx) });
-        scene.action("previous", ctx => { ctx.session.page -= 1; return this.getPageData(ctx) });
+        scene.action("next", ctx => { ctx.session.sceneData.page += 1; return this.getPageData(ctx) });
+        scene.action("previous", ctx => { ctx.session.sceneData.page -= 1; return this.getPageData(ctx) });
 
         // Define handler for getting data from callback query
         scene.on("callback_query", (ctx) => {
             // Save row ID into scene storage
-            ctx.session.editSceneData.rowId = ctx.callbackQuery.data;
+            ctx.session.sceneData.rowId = ctx.callbackQuery.data;
 
             // Enter next scene
             ctx.scene.enter("getEntryRow");
@@ -42,10 +34,17 @@ class EditDatabaseScene {
         deleteRecentKeyboard(ctx);
 
         // Define object where all scene data will store
-        ctx.session.page = 0;
-        ctx.session.editSceneData = {};
+        ctx.session.sceneData = {};
+        
+        ctx.session.sceneData.page = 0;
 
         this.getPageData(ctx);
+    }
+
+    async back(ctx) {
+        deleteRecentKeyboard(ctx);
+        
+        return await ctx.scene.enter("databaseActions");
     }
 
     // Get data by current page
@@ -57,11 +56,11 @@ class EditDatabaseScene {
         const data = await ctx.session.googleSheetsService.readData(ctx.session.currentDatabaseId);
         if(!data) ctx.reply("Ця база даних пуста.")
 
-        ctx.session.columns = data[0];
+        ctx.session.sceneData.columns = data[0];
 
         data.shift();
 
-        const inlineKeyboardArray = await configurePageInlineKeyboardArray(data, ctx.session.page, ctx.session.columns.length);
+        const inlineKeyboardArray = await configurePageInlineKeyboardArray(data, ctx.session.sceneData.page, ctx.session.sceneData.columns.length);
 
         // Define and add new entry and back buttons and push it into array
         const addNewEntryButon = Markup.button.callback("\u{1F195} Додати новий контакт", "addNewEntry");

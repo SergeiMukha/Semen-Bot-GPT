@@ -1,4 +1,4 @@
-const re = /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/
+const re = /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d/
 
 async function updateDatabaseLastChangedTime(ctx) {
     const currentFileName = await ctx.session.googleDriveService.getFileName(ctx.session.currentDatabaseId);
@@ -12,7 +12,9 @@ async function updateDatabaseLastChangedTime(ctx) {
 
     const date = new Date();
 
-    const newFileName = `${currentFileNameWithoutDate || currentFileName}(${date.toISOString()})`;
+    const time = date.toISOString().split(".")[0];
+
+    const newFileName = `${currentFileNameWithoutDate || currentFileName} (${time})`;
 
     await ctx.session.googleDriveService.changeFileName(ctx.session.currentDatabaseId, newFileName);
 };

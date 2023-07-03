@@ -3,9 +3,9 @@ const { configureFoldersInlineKeyboardArray } = require("../keyboards/dynamicKey
 const { stopKeyboard } = require("../keyboards/staticKeyboards");
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
-class MoveDatabaseScene {
+class MoveFolderScene {
     constructor() {
-        const scene = new BaseScene("moveDatabase");
+        const scene = new BaseScene("moveFolder");
 
         scene.enter(this.enter);
         
@@ -14,9 +14,9 @@ class MoveDatabaseScene {
         scene.action("previousFolder", this.previousFolder);
         scene.action("move", this.move);
 
-        scene.action("createFolder", this.createFolder);
+        // scene.action("createFolder", this.createFolder);
 
-        scene.on("callback_query", ctx => { ctx.session.currentFolderId = ctx.callbackQuery.data; ctx.scene.enter("moveDatabase"); });
+        scene.on("callback_query", ctx => { ctx.session.currentFolderId = ctx.callbackQuery.data; ctx.scene.enter("moveFolder"); });
 
         return scene;
     }
@@ -24,8 +24,6 @@ class MoveDatabaseScene {
     async enter(ctx) {
         // Delete recent keyboard
         deleteRecentKeyboard(ctx);
-
-        ctx.session.sceneData = {};
 
         // Get all folders in current folder
         const folders = await ctx.session.googleDriveService.getFoldersInFolder(ctx.session.currentFolderId);
@@ -55,13 +53,13 @@ class MoveDatabaseScene {
 
     async move(ctx) {
         // Get database and folder IDs
-        const databaseId = ctx.session.currentDatabaseId;
+        const folderToMove = ctx.session.sceneData.folderToMove;
         const folderId = ctx.session.currentFolderId;
 
         await ctx.reply("Переміщую...");
 
         // Move database into the folder
-        await ctx.session.googleDriveService.moveFile(databaseId, folderId);
+        await ctx.session.googleDriveService.moveFile(folderToMove, folderId);
 
         await ctx.reply("Папку переміщено.");
 
@@ -87,12 +85,12 @@ class MoveDatabaseScene {
         ctx.session.currentFolderId = parentFolderId
 
         // Reenter scene with new folder
-        return ctx.scene.enter("moveDatabase");
+        return ctx.scene.enter("moveFolder");
     }
 
     async back(ctx) {
-        return await ctx.scene.enter("databaseActions");
+        return await ctx.scene.enter("chooseDatabase");
     }
 }
 
-module.exports = MoveDatabaseScene;
+module.exports = MoveFolderScene;

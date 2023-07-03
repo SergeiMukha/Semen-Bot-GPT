@@ -1,8 +1,7 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
 const deleteFolderHandler = require("../handlers/deleteFolderHandler");
 const startHandler = require("../handlers/startHandler");
-const { configureFolderItemsInlineKeyboardArray } = require("../keyboards/dynamicKeyboards");
-const { databaseFunctionsKeyboard } = require("../keyboards/staticKeyboards");
+const { configureFolderItemsPageInlineKeyboardArray } = require("../keyboards/dynamicKeyboards");
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 
 class ChooseDatabaseScene {
@@ -11,10 +10,19 @@ class ChooseDatabaseScene {
 
         // Define handlers
         scene.enter(this.enter);
-        scene.action("back", this.back);
-        scene.action("createDatabase", ctx => ctx.scene.enter("createDatabase"));
-        scene.action("createFolder", ctx => ctx.scene.enter("createFolder"));
-        scene.action("deleteFolder", deleteFolderHandler)
+        scene.action("previousFolder", this.previousFolder);
+        scene.action("createDatabase", async ctx => await ctx.scene.enter("createDatabase"));
+        scene.action("createFolder", async ctx => await ctx.scene.enter("createFolder"));
+        scene.action("renameFolder", async ctx => await ctx.scene.enter("renameFolder"));
+        scene.action("moveFolder", async ctx => { await ctx.scene.enter("moveFolder"); ctx.session.sceneData.folderToMove = ctx.session.currentFolderId; })
+        scene.action("createNewDatabase", async ctx => await ctx.scene.enter("addDatabase"));
+        scene.action("deleteFolder", deleteFolderHandler);
+
+        scene.hears("\u{1F519} Назад", this.back);
+
+        // Define inline page moving handlers
+        scene.action("nextPage", ctx => { ctx.session.sceneData.page += 1; return ctx.scene.reenter() });
+        scene.action("previousPage", ctx => { ctx.session.sceneData.page -= 1; return ctx.scene.reenter() });
 
         scene.on("callback_query", this.getItem);
 
@@ -22,6 +30,9 @@ class ChooseDatabaseScene {
     }
 
     async enter(ctx) {
+        if(!ctx.session.sceneData) ctx.session.sceneData = {};
+        if(!ctx.session.sceneData.page) ctx.session.sceneData.page = 0;
+
         // Set current folder id as "root"
         ctx.session.currentFolderId = ctx.session.currentFolderId || "root";
 
@@ -32,13 +43,16 @@ class ChooseDatabaseScene {
         const items = await ctx.session.googleDriveService.getItemsInFolder(ctx.session.currentFolderId);
 
         // Get inline keyboard with items in folder and send it to user
-        const inlineKeyboardArray = await configureFolderItemsInlineKeyboardArray(items);
+        const inlineKeyboardArray = await configureFolderItemsPageInlineKeyboardArray(items, ctx.session.sceneData.page);
 
         if(!(await ctx.session.googleDriveService.isRootFolder(ctx.session.currentFolderId))) {
+            const renameFolderButton = Markup.button.callback("\u{1F170} Перейменувати папку", "renameFolder");
             const deleteFolderButton = Markup.button.callback("\u{1F5D1} Видалити папку", "deleteFolder");
+            const moveFolderButton = Markup.button.callback("\u{1F4E9} Перемістити папку", "moveFolder");    
+            const backButton = Markup.button.callback("\u{1F519} Перейти у попередню папку", "previousFolder");
 
-            inlineKeyboardArray.splice(inlineKeyboardArray.length-1, 0, [deleteFolderButton]);
-        }
+            inlineKeyboardArray.push([renameFolderButton, deleteFolderButton], [moveFolderButton], [backButton]);
+        };
 
         // Define inline keyboard with inline keyboard array
         const inlineKeyboard = Markup.inlineKeyboard(inlineKeyboardArray);
@@ -58,6 +72,8 @@ class ChooseDatabaseScene {
         // Delete recent keyboard
         deleteRecentKeyboard(ctx);
 
+        ctx.session.sceneData.page = 0;
+
         // Get item ID
         const itemId = ctx.callbackQuery.data;
 
@@ -69,11 +85,7 @@ class ChooseDatabaseScene {
             // Setting tabel as current database
             ctx.session.currentDatabaseId = itemId;
 
-            // Sending functions choice to user and leave the scene
-            const message = await ctx.reply("Що ви хочете зробити з цією базою даних?", databaseFunctionsKeyboard);
-            ctx.session.recentKeyboardId = message.message_id;
-
-            return await ctx.scene.leave();
+            return await ctx.scene.enter("databaseActions");
         };
 
         // If item type is folder
@@ -83,9 +95,11 @@ class ChooseDatabaseScene {
         return ctx.scene.enter("chooseDatabase");
     }
 
-    async back(ctx) {
+    async previousFolder(ctx) {
         // Delete recent keyboard
         deleteRecentKeyboard(ctx);
+        
+        ctx.session.sceneData.page = 0;
         
         try {
             // Determine parent item of the current folder
@@ -104,6 +118,9 @@ class ChooseDatabaseScene {
 
             startHandler(ctx);
         }
+    }
+    async back(ctx) {
+        return await ctx.scene.enter("start");
     }
 }
 

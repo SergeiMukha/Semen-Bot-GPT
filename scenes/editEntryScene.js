@@ -1,5 +1,6 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
 const startHandler = require("../handlers/startHandler");
+const { stopKeyboard } = require("../keyboards/staticKeyboards");
 
 const deleteRecentKeyboard = require("../utils/deleteRecentKeyboard");
 const updateDatabaseLastChangedTime = require("../utils/updateDatabaseLastChangedTime");
@@ -10,25 +11,10 @@ class EditEntryScene {
 
         // Define enter and text handlers
         scene.enter(this.enter);
+
+        scene.hears("\u{1F519} Назад", this.back);
+
         scene.on("text", this.editEntry);
-
-        // Define actions buttons
-        scene.action("resumeEntryEdit", ctx => ctx.scene.enter("getEntryRow"));
-        scene.action("getBackToRow", ctx => { ctx.scene.enter("editDatabase"); deleteRecentKeyboard(ctx); });
-        scene.action("getBackStart", async ctx => {
-            // Delete recent keyboard
-            deleteRecentKeyboard(ctx);
-
-            // Delete scene data and leave it
-            delete ctx.session.editSceneData;
-            ctx.scene.leave();
-
-            // Execute start handler
-            startHandler(ctx);
-        });
-
-        // Define insuring handler
-        scene.on("message", ctx => ctx.reply("Це не те, що мені треба"))
 
         return scene;
     }
@@ -44,15 +30,15 @@ class EditEntryScene {
         // Get all necessary data to update DB
         const newValue = ctx.message.text;
 
-        const entryId = ctx.session.editSceneData.entryId;
-        const rowId = ctx.session.editSceneData.rowId;
-        const rowData = ctx.session.editSceneData.rowData;
+        const entryId = ctx.session.sceneData.entryId;
+        const rowId = ctx.session.sceneData.rowId;
+        const rowData = ctx.session.sceneData.rowData;
         
         // Update array with new value
         rowData[entryId] = newValue;
 
         const date = new Date();
-        rowData[ctx.session.columns.length+1] = date.toISOString();
+        rowData[ctx.session.sceneData.columns.length+1] = date.toISOString().split(".")[0];
 
         await updateDatabaseLastChangedTime(ctx);
 
@@ -65,18 +51,15 @@ class EditEntryScene {
 
         await ctx.reply("Готово!");
 
-        // Define actions inline keyboard
-        const inlineKeyboard = Markup.inlineKeyboard([
-            [Markup.button.callback("\u{1F519} Продовжити редагування контакту", "resumeEntryEdit")], // To resume editing row
-            [Markup.button.callback("\u{1F519} Повернутись до вибору контакту", "getBackToRow")], // To get back to rows choosing
-            [Markup.button.callback("\u{1F519} Повернутись до початку", "getBackStart")], // To get back to start keyboard
-        ]);
+        return await ctx.scene.enter("editRow");
+    }
 
-        // Send keyboard and save its ID to be able to delete it later
-        const message = await ctx.reply("Що ви хочете далі робити?", inlineKeyboard);
-        ctx.session.recentKeyboardId = message.message_id;
+    
+    async back(ctx) {
+        // Delete recent keyboard
+        deleteRecentKeyboard(ctx);
 
-        return;
+        return await ctx.scene.enter("editRow");
     }
 };
 
