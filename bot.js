@@ -91,12 +91,12 @@ bot.on("message", (ctx, next) => {
 stage.hears("\u{1F5C3} Повернутись на початкове меню", async ctx => await ctx.scene.enter("chooseDatabase"));
 
 // Error handler
-// bot.catch((err, ctx) => {
-//     console.error(`Error: ${err}`);
-//     ctx.reply('Помилка, детальніше про помилку у логах бота.');
+bot.catch((err, ctx) => {
+    console.error(`Error: ${err}`);
+    ctx.reply('Помилка, детальніше про помилку у логах бота.');
 
-//     return startHandler(ctx);
-// });
+    return startHandler(ctx);
+});
 
 // Start the bot
 bot.launch()
