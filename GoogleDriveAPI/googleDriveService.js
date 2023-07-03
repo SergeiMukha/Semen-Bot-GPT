@@ -89,10 +89,12 @@ class GoogleDriveService {
     }
 
     async moveSpreadsheetToFolder(spreadsheetId, folderId) {
+        const parentId = await this.getFolderParent(spreadsheetId);
+
         await this.drive.files.update({
             fileId: spreadsheetId,
             addParents: folderId,
-            removeParents: 'previousParentId',
+            removeParents: parentId,
             fields: 'id, parents',
         });      
     }
