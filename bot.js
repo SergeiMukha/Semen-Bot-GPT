@@ -29,6 +29,7 @@ const MoveFolderScene = require("./scenes/moveFolderScene");
 // Define other functions
 const validateUsage = require("./utils/validateUsage");
 const { navigationKeyboard } = require("./keyboards/staticKeyboards");
+const startHandler = require("./handlers/startHandler");
 
 // Create a new instance of the Telegraf bot
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -95,7 +96,7 @@ bot.catch((err, ctx) => {
     console.error(`Error: ${err}`);
     ctx.reply('Помилка, детальніше про помилку у логах бота.');
 
-    return startHandler(ctx);
+    startHandler(ctx);
 });
 
 // Start the bot
