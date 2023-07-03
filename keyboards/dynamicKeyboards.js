@@ -124,6 +124,7 @@ async function configureTemplatesInlineKeyboardArray(templates) {
 
     for(let i = 1; i < templates.length; i++) {
         const templateName = templates[i][0];
+        if(!templateName) continue;
 
         const button = Markup.button.callback(templateName, i);
         inlineKeyboardArray.push([button]);
