@@ -43,7 +43,7 @@ class GoogleSheetsService {
         await this.sheets.spreadsheets.values.append(
             {
                 spreadsheetId: spreadsheetId,
-                range: await this.getFirstSheetName(spreadsheetId),
+                range: `${(await this.getFirstSheetName(spreadsheetId))}!A:A`,
                 valueInputOption: 'RAW',
                 resource: resource
             },
@@ -153,7 +153,11 @@ class GoogleSheetsService {
 // const start = async () => {
 //     const googleSheetsService = await new GoogleSheetsService();
 
-//     googleSheetsService.readData("1JzJyIz32A_NWSAOfOvpHwk6nm7VGqIMbjhVXZcqXRoU");
+//     await googleSheetsService.writeData(
+//         "1XwXTWlHVzI2-da-soQ3SgzsJN_Py7Pyx24p7TJCxxXo",
+//         [[ 'test', 'test', 'test', '', '2023-07-09T08:28:55' ]]
+//     );
+//     console.log("added");
 // }
 
 // start()
