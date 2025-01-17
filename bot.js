@@ -30,6 +30,8 @@ const MoveFolderScene = require("./scenes/moveFolderScene");
 const validateUsage = require("./utils/validateUsage");
 const { navigationKeyboard } = require("./keyboards/staticKeyboards");
 
+const allowedIds = process.env.ALLOWED_IDS.split(",").map(id => parseInt(id));
+
 // Create a new instance of the Telegraf bot
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -62,10 +64,17 @@ const stage = new Scenes.Stage([
 bot.use(session())
 bot.use(stage);
 
+// Manage access by ids middleware
+bot.use(async (ctx, next) => {
+    if(!allowedIds.includes(ctx.chat.id)) {
+        return await ctx.reply("You have no access to this bot.");
+    } else {
+        return await next();
+    };
+});
+
 // Start command handler
 bot.start(async ctx => { await ctx.reply("Додаю кнопки...", navigationKeyboard); await ctx.scene.enter("start") });
-
-// bot.on("video", async ctx => console.log(await ctx.telegram.getFileLink(ctx.message.video.file_id)));
 
 // Validate necessary components were initialized
 bot.on("callback_query", (ctx, next) => {
@@ -92,6 +101,7 @@ stage.hears("\u{1F5C3} Повернутись на початкове меню",
 
 // Error handler
 bot.catch((err, ctx) => {
+    console.error(err);
     console.error(`Error: ${err}`);
     ctx.reply('Помилка, детальніше про помилку у логах бота.');
 
